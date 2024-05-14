@@ -4,10 +4,14 @@ use std::env;
 use std::fs::File;
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
-
     let args: Vec<String> = env::args().collect();
+    if args.len() < 3 {
+        eprintln!("Usage: {} --directory <directory>", args[0]);
+        std::process::exit(1);
+    }
     let directory = args[2].clone();
+
+    let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
         match stream {
