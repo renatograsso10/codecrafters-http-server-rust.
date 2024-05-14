@@ -67,10 +67,20 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         )
     } else if request.starts_with("GET / ") {
         "HTTP/1.1 200 OK\r\n\r\n".to_string()
+    } else if request.starts_with("POST /files/") {
+        let filename = &request[12..request.find("HTTP/1.1").unwrap() - 1];
+        let filepath = format!("{}/{}", directory, filename);
+        let body = request.split("\r\n\r\n").nth(1).unwrap_or("");
+        match File::create(filepath) {
+            Ok(mut file) => {
+                file.write_all(body.as_bytes()).unwrap();
+                "HTTP/1.1 201 Created\r\n\r\n".to_string()
+            }
+            Err(_) => "HTTP/1.1 500 Internal Server Error\r\n\r\n".to_string(),
+        }
     } else {
         "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
     };
 
     stream.write_all(response.as_bytes()).unwrap();
 }
-
