@@ -76,9 +76,9 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         match File::create(filepath) {
             Ok(mut file) => {
                 file.write_all(body.trim_end_matches('\0').as_bytes()).unwrap();
-                "HTTP/1.1 201 Created\r\n\r\n".to_string()
+                "HTTP/1.1 201 Created\r\n\r\n".to_string().into_bytes()
             }
-            Err(_) => "HTTP/1.1 500 Internal Server Error\r\n\r\n".to_string(),
+            Err(_) => "HTTP/1.1 500 Internal Server Error\r\n\r\n".to_string().into_bytes(),
         }
     } else {
         "HTTP/1.1 404 Not Found\r\n\r\n".to_string().into_bytes()
