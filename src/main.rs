@@ -5,11 +5,11 @@ use std::fs::File;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        eprintln!("Usage: {} --directory <directory>", args[0]);
-        std::process::exit(1);
-    }
-    let directory = args[2].clone();
+    let directory = if args.len() >= 3 && args[1] == "--directory" {
+        args[2].clone()
+    } else {
+        ".".to_string() // Default to current directory
+    };
 
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
