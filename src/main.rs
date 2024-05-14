@@ -81,7 +81,7 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
             Err(_) => "HTTP/1.1 500 Internal Server Error\r\n\r\n".to_string(),
         }
     } else {
-        "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
+        "HTTP/1.1 404 Not Found\r\n\r\n".to_string().into_bytes()
     };
 
     stream.write_all(response).unwrap();
