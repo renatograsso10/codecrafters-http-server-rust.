@@ -54,7 +54,8 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
             .find(|line| line.to_lowercase().starts_with("accept-encoding:"))
             .map(|line| line[16..].trim())
             .unwrap_or("");
-        let response = if user_agent.contains("gzip") {
+        let encodings: Vec<&str> = user_agent.split(',').map(|s| s.trim()).collect();
+        let response = if encodings.contains(&"gzip") {
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
                 echo_str.len(),
