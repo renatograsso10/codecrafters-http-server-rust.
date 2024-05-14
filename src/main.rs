@@ -69,6 +69,20 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         ).into_bytes()
     } else if request.starts_with("GET / ") {
         "HTTP/1.1 200 OK\r\n\r\n".to_string().into_bytes()
+    } else if request.starts_with("GET /files/") {
+        let filename = &request[11..request.find("HTTP/1.1").unwrap() - 1];
+        let filepath = format!("{}/{}", directory, filename);
+        match File::open(filepath) {
+            Ok(mut file) => {
+                let mut contents = Vec::new();
+                file.read_to_end(&mut contents).unwrap();
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n",
+                    contents.len()
+                ).into_bytes().into_iter().chain(contents).collect::<Vec<u8>>()
+            }
+            Err(_) => "HTTP/1.1 404 Not Found\r\n\r\n".to_string().into_bytes(),
+        }
     } else if request.starts_with("POST /files/") {
         let filename = &request[12..request.find("HTTP/1.1").unwrap() - 1];
         let filepath = format!("{}/{}", directory, filename);
