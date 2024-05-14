@@ -47,16 +47,15 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
             encoder.write_all(echo_str.as_bytes()).unwrap();
             let compressed_data = encoder.finish().unwrap();
             format!(
-                "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
-                compressed_data.len(),
-                String::from_utf8_lossy(&compressed_data)
-            )
+                "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n",
+                compressed_data.len()
+            ).into_bytes().into_iter().chain(compressed_data).collect::<Vec<u8>>()
         } else {
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
                 echo_str.len(),
                 echo_str
-            )
+            ).into_bytes()
         }
     } else if request.starts_with("GET /user-agent") {
         let user_agent = request.lines()
@@ -85,6 +84,6 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
     };
 
-    stream.write_all(response.as_bytes()).unwrap();
+    stream.write_all(response).unwrap();
     stream.flush().unwrap();
 }
