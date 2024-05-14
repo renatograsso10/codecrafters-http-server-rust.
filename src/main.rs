@@ -84,6 +84,6 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         "HTTP/1.1 404 Not Found\r\n\r\n".to_string().into_bytes()
     };
 
-    stream.write_all(response).unwrap();
+    stream.write_all(&response).unwrap();
     stream.flush().unwrap();
 }
