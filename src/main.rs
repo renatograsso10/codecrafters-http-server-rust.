@@ -12,6 +12,7 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
+                let directory = directory.clone();
                 std::thread::spawn(move || {
                     handle_connection(stream, &directory);
                 });
