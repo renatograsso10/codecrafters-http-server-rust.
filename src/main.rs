@@ -2,6 +2,8 @@ use std::net::TcpListener;
 use std::io::{Read, Write};
 use std::env;
 use std::fs::File;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -33,33 +35,21 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
     stream.read(&mut buffer).unwrap();
     let request = String::from_utf8_lossy(&buffer[..]);
 
-    let response = if request.starts_with("GET /files/") {
-        let filename = &request[11..request.find("HTTP/1.1").unwrap() - 1];
-        let filepath = format!("{}/{}", directory, filename);
-        match File::open(filepath) {
-            Ok(mut file) => {
-                let mut contents = Vec::new();
-                file.read_to_end(&mut contents).unwrap();
-                format!(
-                    "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}",
-                    contents.len(),
-                    String::from_utf8_lossy(&contents)
-                )
-            }
-            Err(_) => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
-        }
-    } else if request.starts_with("GET /echo/") {
+    let response = if request.starts_with("GET /echo/") {
         let echo_str = &request[10..request.find("HTTP/1.1").unwrap() - 1];
         let user_agent = request.lines()
             .find(|line| line.to_lowercase().starts_with("accept-encoding:"))
             .map(|line| line[16..].trim())
             .unwrap_or("");
         let encodings: Vec<&str> = user_agent.split(',').map(|s| s.trim()).collect();
-        let response = if encodings.contains(&"gzip") {
+        if encodings.contains(&"gzip") {
+            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+            encoder.write_all(echo_str.as_bytes()).unwrap();
+            let compressed_data = encoder.finish().unwrap();
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
-                echo_str.len(),
-                echo_str
+                compressed_data.len(),
+                String::from_utf8_lossy(&compressed_data)
             )
         } else {
             format!(
@@ -67,8 +57,7 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
                 echo_str.len(),
                 echo_str
             )
-        };
-        response
+        }
     } else if request.starts_with("GET /user-agent") {
         let user_agent = request.lines()
             .find(|line| line.starts_with("User-Agent:"))
@@ -97,4 +86,5 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
     };
 
     stream.write_all(response.as_bytes()).unwrap();
+    stream.flush().unwrap();
 }
