@@ -66,7 +66,7 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
             "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
             user_agent.len(),
             user_agent
-        )
+        ).into_bytes()
     } else if request.starts_with("GET / ") {
         "HTTP/1.1 200 OK\r\n\r\n".to_string().into_bytes()
     } else if request.starts_with("POST /files/") {
