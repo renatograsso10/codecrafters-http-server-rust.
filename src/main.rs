@@ -7,13 +7,13 @@ fn main() {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     let args: Vec<String> = env::args().collect();
-    let directory = &args[2];
+    let directory = args[2].clone();
 
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
                 std::thread::spawn(move || {
-                    handle_connection(stream, directory);
+                    handle_connection(stream, &directory);
                 });
             }
             Err(e) => {
