@@ -68,7 +68,7 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
             user_agent
         )
     } else if request.starts_with("GET / ") {
-        "HTTP/1.1 200 OK\r\n\r\n".to_string()
+        "HTTP/1.1 200 OK\r\n\r\n".to_string().into_bytes()
     } else if request.starts_with("POST /files/") {
         let filename = &request[12..request.find("HTTP/1.1").unwrap() - 1];
         let filepath = format!("{}/{}", directory, filename);
