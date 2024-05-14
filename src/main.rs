@@ -20,6 +20,16 @@ fn main() {
                         echo_str.len(),
                         echo_str
                     )
+                } else if request.starts_with("GET /user-agent") {
+                    let user_agent = request.lines()
+                        .find(|line| line.starts_with("User-Agent:"))
+                        .map(|line| line[12..].trim())
+                        .unwrap_or("");
+                    format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                        user_agent.len(),
+                        user_agent
+                    )
                 } else if request.starts_with("GET / ") {
                     "HTTP/1.1 200 OK\r\n\r\n".to_string()
                 } else {
