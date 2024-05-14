@@ -50,11 +50,24 @@ fn handle_connection(mut stream: std::net::TcpStream, directory: &str) {
         }
     } else if request.starts_with("GET /echo/") {
         let echo_str = &request[10..request.find("HTTP/1.1").unwrap() - 1];
-        format!(
-            "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
-            echo_str.len(),
-            echo_str
-        )
+        let user_agent = request.lines()
+            .find(|line| line.to_lowercase().starts_with("accept-encoding:"))
+            .map(|line| line[16..].trim())
+            .unwrap_or("");
+        let response = if user_agent.contains("gzip") {
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                echo_str.len(),
+                echo_str
+            )
+        } else {
+            format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                echo_str.len(),
+                echo_str
+            )
+        };
+        response
     } else if request.starts_with("GET /user-agent") {
         let user_agent = request.lines()
             .find(|line| line.starts_with("User-Agent:"))
